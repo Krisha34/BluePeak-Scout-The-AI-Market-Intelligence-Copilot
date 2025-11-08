@@ -15,7 +15,15 @@ router = APIRouter()
 rag_agent = RAGQueryAssistantAgent()
 
 
+@router.options("/")
+@router.options("")
+async def chat_options():
+    """Handle OPTIONS preflight request"""
+    return {}
+
+
 @router.post("/", response_model=ChatResponse)
+@router.post("", response_model=ChatResponse)
 async def send_message(request: ChatRequest):
     """Send a chat message and get AI response"""
     try:
