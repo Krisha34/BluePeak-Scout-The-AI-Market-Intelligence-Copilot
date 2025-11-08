@@ -1,0 +1,48 @@
+# FastAPI and Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+websockets==12.0
+
+# LangChain and LangGraph
+langchain==0.1.0
+langgraph==0.0.20
+langchain-anthropic==0.1.1
+langchain-community==0.0.13
+
+# Database and Storage
+supabase==2.3.0
+psycopg2-binary==2.9.9
+redis==5.0.1
+chromadb==0.4.18
+
+# Vector embeddings
+sentence-transformers==2.2.2
+
+# HTTP and API
+httpx==0.25.2
+aiohttp==3.9.1
+requests==2.31.0
+
+# Authentication and Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# Data Processing
+pydantic==2.5.2
+pydantic-settings==2.1.0
+pandas==2.1.4
+numpy==1.26.2
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+pyyaml==6.0.1
+
+# Integrations
+slack-sdk==3.26.1
+sendgrid==6.11.0
+
+# Monitoring and Logging
+loguru==0.7.2
