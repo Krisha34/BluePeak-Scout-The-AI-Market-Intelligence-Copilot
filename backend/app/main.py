@@ -86,6 +86,15 @@ async def health_check():
     }
 
 
+@app.get(f"{settings.API_PREFIX}/health")
+async def health_check_v1():
+    """Health check endpoint (v1)"""
+    return {
+        "status": "healthy",
+        "environment": settings.ENVIRONMENT
+    }
+
+
 @app.on_event("startup")
 async def startup_event():
     """Startup tasks"""

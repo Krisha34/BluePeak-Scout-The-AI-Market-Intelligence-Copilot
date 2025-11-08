@@ -197,7 +197,7 @@ if [ ! -f ".env" ]; then
 
     cat > .env << 'EOF'
 # Application Settings
-APP_NAME=BluePeak Compass
+APP_NAME="BluePeak Compass"
 ENVIRONMENT=development
 DEBUG=True
 LOG_LEVEL=INFO
@@ -237,7 +237,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 SLACK_BOT_TOKEN=
 SLACK_SIGNING_SECRET=
 SENDGRID_API_KEY=
-FROM_EMAIL=noreply@bluepeak.ai
+FROM_EMAIL="noreply@bluepeak.ai"
 
 # Rate Limiting
 RATE_LIMIT_REQUESTS=100
@@ -261,7 +261,30 @@ fi
 
 # Validate required environment variables
 log_info "Validating environment variables..."
-source .env
+
+# Safely load environment variables from .env
+# This approach handles quoted values, spaces, and special characters correctly
+set +e  # Temporarily disable exit on error for pattern matching
+while IFS='=' read -r key value; do
+    # Skip comments and empty lines
+    if [[ $key =~ ^#.* ]] || [[ -z $key ]]; then
+        continue
+    fi
+
+    # Remove leading/trailing whitespace
+    key=$(echo "$key" | xargs)
+    value=$(echo "$value" | xargs)
+
+    # Remove quotes if present
+    value="${value%\"}"
+    value="${value#\"}"
+    value="${value%\'}"
+    value="${value#\'}"
+
+    # Export the variable
+    export "$key=$value"
+done < .env
+set -e  # Re-enable exit on error
 
 MISSING_VARS=()
 if [ -z "$ANTHROPIC_API_KEY" ] || [ "$ANTHROPIC_API_KEY" = "your_anthropic_api_key_here" ]; then
