@@ -9,6 +9,42 @@ BluePeak Compass is a comprehensive competitive intelligence and market research
 ![Next.js](https://img.shields.io/badge/next.js-14.0-black)
 ![FastAPI](https://img.shields.io/badge/fastapi-0.104-teal)
 
+## 🚀 Quick Start (One-Command Setup)
+
+The easiest way to run BluePeak Compass is using our automated startup script:
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd hackethon
+
+# Make scripts executable
+chmod +x start.sh stop.sh
+
+# Run the application
+./start.sh
+```
+
+**That's it!** The script will:
+- ✅ Check all prerequisites (Python, Node.js, npm)
+- ✅ Install all dependencies automatically
+- ✅ Handle port conflicts intelligently
+- ✅ Create `.env` file if missing
+- ✅ Validate your configuration
+- ✅ Start both backend and frontend
+- ✅ Open the application in your browser
+
+**To stop the application:**
+```bash
+./stop.sh
+```
+
+### Prerequisites for Quick Start
+- Python 3.8+ ([Download](https://www.python.org/downloads/))
+- Node.js 18+ ([Download](https://nodejs.org/))
+- Anthropic API Key ([Get Key](https://console.anthropic.com/))
+- Supabase Account ([Sign Up](https://supabase.com/))
+
 ## 🚀 Features
 
 ### Core Capabilities
@@ -110,19 +146,52 @@ This will populate your database with:
 
 ## 🚢 Running the Application
 
-### Option 1: Docker Compose (Recommended)
+### Option 1: Automated Scripts (Easiest) ⭐
+
+Use the provided startup scripts for a hassle-free experience:
+
+```bash
+# Start everything
+./start.sh
+
+# Stop everything
+./stop.sh
+```
+
+The startup script automatically:
+- Checks system requirements
+- Installs dependencies if needed
+- Handles port conflicts (offers to kill processes or use alternative ports)
+- Validates environment variables
+- Creates missing .env files
+- Starts both backend and frontend
+- Monitors services and shows logs
+
+**Access the application:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/api/v1/docs
+
+**View logs:**
+```bash
+# Follow all logs
+tail -f logs/backend.log logs/frontend.log
+
+# Backend only
+tail -f logs/backend.log
+
+# Frontend only
+tail -f logs/frontend.log
+```
+
+### Option 2: Docker Compose
 
 ```bash
 # From project root
 docker-compose up -d
 ```
 
-Access the application:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/api/v1/docs
-
-### Option 2: Manual Setup
+### Option 3: Manual Setup
 
 **Terminal 1 - Backend:**
 ```bash
@@ -141,6 +210,38 @@ npm run dev
 ```bash
 redis-server
 ```
+
+## 🛠️ Script Features & Edge Cases
+
+The `start.sh` script handles various edge cases:
+
+### Port Conflict Resolution
+- Automatically detects if ports 8000 or 3000 are in use
+- Offers to kill existing processes or use alternative ports (8001, 3001)
+- Works on macOS, Linux, and WSL
+
+### Dependency Management
+- Checks if Python virtual environment exists, creates if needed
+- Installs/updates Python dependencies when requirements.txt changes
+- Installs/updates Node.js dependencies when package.json changes
+- Caches installations to speed up subsequent runs
+
+### Environment Validation
+- Creates template `.env` file if missing
+- Validates required environment variables (API keys, database credentials)
+- Prevents startup with missing or invalid configuration
+- Updates port numbers in configuration if defaults are unavailable
+
+### Intelligent Startup
+- Waits for backend to be ready before starting frontend
+- Health checks ensure services are running correctly
+- Stores process IDs for clean shutdown
+- Provides real-time logs during startup
+
+### Error Handling
+- Clear error messages with suggested solutions
+- Graceful failure if prerequisites are missing
+- Automatic cleanup on errors
 
 ## 📁 Project Structure
 
