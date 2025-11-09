@@ -1,4 +1,4 @@
-# # BluePeak Scout – The AI Market Intelligence Copilot
+# BluePeak Scout – The AI Market Intelligence Copilot
 
 **Multi-Agent AI Platform for Competitive Intelligence and Market Research**
 
