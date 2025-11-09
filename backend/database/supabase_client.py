@@ -214,6 +214,37 @@ class SupabaseClient:
             app_logger.error(f"Error updating conversation: {e}")
             return None
 
+    # Integration Settings Operations
+    async def get_integration_settings(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Fetch integration settings for a user"""
+        if not self.client:
+            app_logger.error("Supabase client not initialized - cannot fetch integration settings")
+            return None
+
+        try:
+            response = self.client.table("integration_settings").select("*").eq("user_id", user_id).execute()
+            return response.data[0] if response.data else None
+        except Exception as e:
+            app_logger.error(f"Error fetching integration settings: {e}")
+            return None
+
+    async def upsert_integration_settings(self, user_id: str, settings_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create or update integration settings for a user"""
+        if not self.client:
+            app_logger.error("Supabase client not initialized - cannot upsert integration settings")
+            return None
+
+        try:
+            # Add user_id to the data
+            settings_data["user_id"] = user_id
+
+            # Upsert (insert or update if exists)
+            response = self.client.table("integration_settings").upsert(settings_data).execute()
+            return response.data[0] if response.data else None
+        except Exception as e:
+            app_logger.error(f"Error upserting integration settings: {e}")
+            return None
+
 
 # Global instance
 supabase_client = SupabaseClient()

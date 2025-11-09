@@ -18,6 +18,8 @@ export default function CompetitorsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showAnalysisModal, setShowAnalysisModal] = useState(false)
   const [analysisData, setAnalysisData] = useState<any>(null)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [selectedCompetitor, setSelectedCompetitor] = useState<Competitor | null>(null)
   const [newCompetitor, setNewCompetitor] = useState({
     name: '',
     website: '',
@@ -95,6 +97,11 @@ export default function CompetitorsPage() {
       console.error('Error analyzing competitor:', error)
       toast.error('Failed to analyze competitor')
     }
+  }
+
+  const handleViewDetails = (competitor: Competitor) => {
+    setSelectedCompetitor(competitor)
+    setShowDetailsModal(true)
   }
 
   // Get unique industries for filter
@@ -175,6 +182,169 @@ export default function CompetitorsPage() {
           summary={analysisData.summary || ''}
           timestamp={analysisData.timestamp || new Date().toISOString()}
         />
+      )}
+
+      {/* Competitor Details Modal */}
+      {showDetailsModal && selectedCompetitor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-blue-600 font-bold text-xl">
+                  {selectedCompetitor.name.charAt(0)}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">{selectedCompetitor.name}</h2>
+                  <p className="text-blue-100 text-sm">{selectedCompetitor.industry}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowDetailsModal(false)
+                  setSelectedCompetitor(null)
+                }}
+                className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              {/* Status Badge */}
+              <div className="mb-6">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedCompetitor.status)}`}>
+                  {getStatusIcon(selectedCompetitor.status)}
+                  <span className="ml-2">{selectedCompetitor.status.toUpperCase()}</span>
+                </span>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {selectedCompetitor.website && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Website</label>
+                    <a
+                      href={selectedCompetitor.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2"
+                    >
+                      <Globe className="w-4 h-4" />
+                      {selectedCompetitor.website}
+                    </a>
+                  </div>
+                )}
+
+                {selectedCompetitor.headquarters && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Headquarters</label>
+                    <p className="text-gray-900 flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      {selectedCompetitor.headquarters}
+                    </p>
+                  </div>
+                )}
+
+                {selectedCompetitor.founded_year && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Founded</label>
+                    <p className="text-gray-900 flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      {selectedCompetitor.founded_year}
+                    </p>
+                  </div>
+                )}
+
+                {selectedCompetitor.employee_count && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Employees</label>
+                    <p className="text-gray-900 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      {selectedCompetitor.employee_count.toLocaleString()}
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    Monitoring Score
+                    <span className="text-xs text-gray-500 font-normal" title="Activity score based on analysis frequency and last analyzed date. Increases with each analysis.">
+                      ⓘ
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 bg-gray-200 rounded-full h-3">
+                      <div
+                        className="bg-blue-600 h-3 rounded-full"
+                        style={{ width: `${(selectedCompetitor.monitoring_score || 0) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">
+                      {((selectedCompetitor.monitoring_score || 0) * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {(selectedCompetitor.monitoring_score || 0) < 0.3 ? 'Needs analysis' :
+                     (selectedCompetitor.monitoring_score || 0) < 0.7 ? 'Moderate activity' :
+                     'Actively monitored'}
+                  </p>
+                </div>
+
+                {selectedCompetitor.last_analyzed && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Last Analyzed</label>
+                    <p className="text-gray-900">{new Date(selectedCompetitor.last_analyzed).toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Description */}
+              {selectedCompetitor.description && (
+                <div className="mt-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                  <p className="text-gray-700 leading-relaxed">{selectedCompetitor.description}</p>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <label className="block text-gray-600 mb-1">Created</label>
+                    <p className="text-gray-900">{new Date(selectedCompetitor.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-gray-600 mb-1">Last Updated</label>
+                    <p className="text-gray-900">{new Date(selectedCompetitor.updated_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50 flex gap-3">
+              <button
+                onClick={() => handleAnalyze(selectedCompetitor.id, selectedCompetitor.name)}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Analyze Competitor
+              </button>
+              <button
+                onClick={() => {
+                  setShowDetailsModal(false)
+                  setSelectedCompetitor(null)
+                }}
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
@@ -470,7 +640,10 @@ export default function CompetitorsPage() {
                   >
                     Analyze
                   </button>
-                  <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                  <button
+                    onClick={() => handleViewDetails(competitor)}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                  >
                     View Details
                   </button>
                 </div>

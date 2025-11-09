@@ -18,7 +18,18 @@ export default function ChatPage() {
     'What are the latest market trends?',
     'Which competitors are gaining market share?'
   ])
+  const [showFilters, setShowFilters] = useState(false)
+  const [selectedFilter, setSelectedFilter] = useState<string>('all')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  const filterOptions = [
+    { value: 'all', label: 'All Topics', icon: '🔍' },
+    { value: 'ai_features', label: 'AI Features', icon: '🤖' },
+    { value: 'pricing', label: 'Pricing', icon: '💰' },
+    { value: 'content', label: 'Content Strategy', icon: '📝' },
+    { value: 'trends', label: 'Market Trends', icon: '📈' },
+    { value: 'competitors', label: 'Competitors', icon: '🏢' }
+  ]
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -166,6 +177,43 @@ export default function ChatPage() {
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto px-8 py-6">
         <div className="max-w-5xl mx-auto">
+          {/* Filters */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <h3 className="font-semibold text-gray-900">Filter Topics</h3>
+              </div>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                {showFilters ? 'Hide' : 'Show'} Filters
+              </button>
+            </div>
+
+            {showFilters && (
+              <div className="flex flex-wrap gap-2 p-4 bg-white rounded-lg border border-gray-200">
+                {filterOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSelectedFilter(option.value)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
+                      selectedFilter === option.value
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <span>{option.icon}</span>
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Suggested Questions */}
           {messages.length === 0 && (
             <div className="mb-6">

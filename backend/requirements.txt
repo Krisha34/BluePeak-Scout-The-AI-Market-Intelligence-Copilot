@@ -47,3 +47,14 @@ sendgrid==6.11.0
 
 # Monitoring and Logging
 loguru==0.7.2
+
+# Report Generation and Visualization
+matplotlib==3.8.2
+plotly==5.18.0
+Pillow==10.1.0
+reportlab==4.0.7
+kaleido==0.2.1
+
+# Sentiment Analysis
+textblob==0.17.1
+vaderSentiment==3.3.2

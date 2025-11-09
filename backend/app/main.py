@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.logger import app_logger
-from app.api.endpoints import competitors, trends, chat, reports, integrations, analytics
+from app.api.endpoints import competitors, trends, chat, reports, integrations, analytics, social_sharing
 from app.api.websocket import websocket_router
 
 
@@ -58,6 +58,11 @@ app.include_router(
     analytics.router,
     prefix=f"{settings.API_PREFIX}/analytics",
     tags=["analytics"]
+)
+app.include_router(
+    social_sharing.router,
+    prefix=f"{settings.API_PREFIX}/social-sharing",
+    tags=["social-sharing"]
 )
 app.include_router(
     websocket_router,
