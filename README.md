@@ -83,6 +83,17 @@ chmod +x start.sh stop.sh
 ### See BluePeak Compass In Action
 
 
+Login: 
+
+<img width="1470" height="794" alt="image (7)" src="https://github.com/user-attachments/assets/abd02774-de22-46e4-8c2a-e829808f5ff7" />
+
+Dashboard:
+
+
+![WhatsApp Image 2025-11-08 at 22 01 43_ccdc292f](https://github.com/user-attachments/assets/694df0b1-d097-4d4c-b961-76535f7a2412)
+
+
+
 ## 📋 Prerequisites
 
 - Python 3.11+
@@ -406,8 +417,6 @@ For issues and questions:
 
 For questions or support, please open an issue on GitHub.
 
-Login: 
 
-<img width="1470" height="794" alt="image (7)" src="https://github.com/user-attachments/assets/abd02774-de22-46e4-8c2a-e829808f5ff7" />
 
 
