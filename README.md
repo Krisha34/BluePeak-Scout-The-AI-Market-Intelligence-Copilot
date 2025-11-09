@@ -215,34 +215,6 @@ redis-server
 
 The `start.sh` script handles various edge cases:
 
-### Port Conflict Resolution
-- Automatically detects if ports 8000 or 3000 are in use
-- Offers to kill existing processes or use alternative ports (8001, 3001)
-- Works on macOS, Linux, and WSL
-
-### Dependency Management
-- Checks if Python virtual environment exists, creates if needed
-- Installs/updates Python dependencies when requirements.txt changes
-- Installs/updates Node.js dependencies when package.json changes
-- Caches installations to speed up subsequent runs
-
-### Environment Validation
-- Creates template `.env` file if missing
-- Validates required environment variables (API keys, database credentials)
-- Prevents startup with missing or invalid configuration
-- Updates port numbers in configuration if defaults are unavailable
-
-### Intelligent Startup
-- Waits for backend to be ready before starting frontend
-- Health checks ensure services are running correctly
-- Stores process IDs for clean shutdown
-- Provides real-time logs during startup
-
-### Error Handling
-- Clear error messages with suggested solutions
-- Graceful failure if prerequisites are missing
-- Automatic cleanup on errors
-
 ## 📁 Project Structure
 
 ```
@@ -320,9 +292,6 @@ bluepeak-compass/
 - `GET /api/v1/analytics/metrics` - Get analytics metrics
 - `GET /api/v1/analytics/dashboard` - Get dashboard data
 
-### WebSocket
-- `WS /ws/updates` - Real-time updates stream
-
 Full API documentation available at: http://localhost:8000/api/v1/docs
 
 ## 🤖 Multi-Agent System
@@ -367,66 +336,6 @@ SENDGRID_API_KEY=your_sendgrid_key
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 NEXT_PUBLIC_WS_URL=ws://localhost:8000/ws
-```
-
-## 🚀 Deployment to GCP
-
-### Prerequisites
-- GCP account with billing enabled
-- `gcloud` CLI installed and configured
-
-### Deployment Steps
-
-1. **Update configuration:**
-```bash
-cd deployment
-# Edit deploy.sh with your PROJECT_ID
-```
-
-2. **Set environment variables:**
-```bash
-export ANTHROPIC_API_KEY="your_key"
-export SUPABASE_URL="your_url"
-export SUPABASE_KEY="your_key"
-```
-
-3. **Run deployment:**
-```bash
-chmod +x deploy.sh
-./deploy.sh
-```
-
-The script will:
-- Build Docker images
-- Push to Google Container Registry
-- Deploy to Cloud Run
-- Set up Redis instance
-- Configure secrets
-- Output application URLs
-
-## 💰 Cost Optimization
-
-### Claude API Usage
-- Estimated cost: ~$0.50-$2.00 per 1000 requests
-- Implement caching for repeated queries
-- Use vector store to reduce API calls
-- Set rate limits appropriately
-
-### GCP Costs
-- Cloud Run: Pay per request (generous free tier)
-- Redis: ~$40/month for 1GB instance
-- Total estimated cost: $50-100/month for moderate usage
-
-## 🧪 Testing
-
-```bash
-# Backend tests
-cd backend
-pytest
-
-# Frontend tests
-cd frontend
-npm test
 ```
 
 ## 📊 Monitoring
