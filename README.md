@@ -82,6 +82,8 @@ chmod +x start.sh stop.sh
 
 ### See BluePeak Compass In Action
 
+Demo Link: https://drive.google.com/file/d/1AyzE_I-T6JtBT-F14DgIGhSy9i7d4Hbk/view?usp=sharing
+
 
 Login: 
 
@@ -91,6 +93,37 @@ Dashboard:
 
 
 ![WhatsApp Image 2025-11-08 at 22 01 43_ccdc292f](https://github.com/user-attachments/assets/694df0b1-d097-4d4c-b961-76535f7a2412)
+
+
+<img width="1463" height="795" alt="image (10)" src="https://github.com/user-attachments/assets/77b40932-e96d-4102-a7de-2f34f161824c" />
+
+Competitors:
+
+<img width="1460" height="790" alt="image (4)" src="https://github.com/user-attachments/assets/72d56381-cee3-4bf2-bae0-5816916a6294" />
+
+<img width="1459" height="789" alt="image (3)" src="https://github.com/user-attachments/assets/b636c5b4-869b-4eae-91ff-2f122cd7965b" />
+
+
+Reports:
+<img width="1461" height="789" alt="image (6)" src="https://github.com/user-attachments/assets/2f56dc87-cf9d-4360-8ed0-a7a810cc034a" />
+
+
+<img width="1456" height="787" alt="image (5)" src="https://github.com/user-attachments/assets/11356f66-cb2f-46b1-9151-d521a8e498a9" />
+
+Chat:
+
+<img width="1470" height="796" alt="image (9)" src="https://github.com/user-attachments/assets/7eb59eee-a585-470e-a5b0-9427e4ac4e08" />
+
+Trends:
+<img width="1460" height="788" alt="image (11)" src="https://github.com/user-attachments/assets/f4c8e65a-48d7-4a84-8a30-ebe2b19d35d0" />
+
+Integrations:
+
+<img width="1458" height="789" alt="image (2)" src="https://github.com/user-attachments/assets/ca9303bd-f3dc-4658-807b-893548963fe5" />
+
+
+
+<img width="1459" height="793" alt="image (1)" src="https://github.com/user-attachments/assets/b1928cd8-7a04-45f1-8b57-92f68bf6094f" />
 
 
 
