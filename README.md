@@ -479,3 +479,7 @@ For issues and questions:
 **Built for hackathon - production-ready with room for enhancements**
 
 For questions or support, please open an issue on GitHub.
+
+<img width="1470" height="794" alt="image (7)" src="https://github.com/user-attachments/assets/abd02774-de22-46e4-8c2a-e829808f5ff7" />
+
+
