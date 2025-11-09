@@ -57,10 +57,21 @@ export interface Report {
   created_at: string;
 }
 
+export interface Source {
+  type: string;
+  id?: string;
+  title: string;
+  relevance?: number;
+  excerpt?: string;
+  url?: string;
+}
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: string;
+  sources?: Source[];
+  suggested_actions?: string[];
 }
 
 export interface Conversation {

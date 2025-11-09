@@ -12,6 +12,7 @@ from app.models.schemas import (
 from database.supabase_client import supabase_client
 from agents.competitive_intelligence import CompetitiveIntelligenceAgent
 from app.core.logger import app_logger
+from integrations.email_integration import email_integration
 from datetime import datetime
 import uuid
 
@@ -64,6 +65,14 @@ async def create_competitor(competitor: CompetitorCreate):
         competitor_data["created_at"] = datetime.utcnow().isoformat()
         competitor_data["updated_at"] = datetime.utcnow().isoformat()
 
+        # Set default monitoring score if not provided
+        if "monitoring_score" not in competitor_data or competitor_data["monitoring_score"] is None:
+            competitor_data["monitoring_score"] = 0.5
+
+        # Set last_analyzed to None initially
+        if "last_analyzed" not in competitor_data:
+            competitor_data["last_analyzed"] = None
+
         created = await supabase_client.create_competitor(competitor_data)
         if not created:
             raise HTTPException(status_code=400, detail="Failed to create competitor")
@@ -114,6 +123,54 @@ async def analyze_competitor(competitor_id: str, analysis_type: str = "comprehen
             {"last_analyzed": datetime.utcnow().isoformat()}
         )
 
+        # Send email notification if integration is enabled
+        try:
+            integration_settings = await supabase_client.get_integration_settings("default_user")
+            if integration_settings and integration_settings.get("email_enabled"):
+                recipients = integration_settings.get("email_recipients", [])
+                notification_types = integration_settings.get("notification_types", [])
+
+                # Check if analysis notifications are enabled
+                if recipients and ("new_competitor" in notification_types or "analysis_complete" in notification_types):
+                    html_content = f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <style>
+                            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                            .header {{ background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px; }}
+                            .content {{ padding: 20px; background: #f9fafb; margin-top: 20px; border-radius: 8px; }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1>BluePeak Compass</h1>
+                                <p>Competitor Analysis Complete</p>
+                            </div>
+                            <div class="content">
+                                <h2>{competitor['name']} Analysis</h2>
+                                <p><strong>Industry:</strong> {competitor.get('industry', 'N/A')}</p>
+                                <p><strong>Analysis Type:</strong> {analysis_type}</p>
+                                <p><strong>Completed:</strong> {datetime.utcnow().strftime('%B %d, %Y at %I:%M %p UTC')}</p>
+                                <p style="margin-top: 20px;">The competitive intelligence analysis has been completed. View the full results in your BluePeak Compass dashboard.</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                    """
+
+                    await email_integration.send_email(
+                        to_emails=recipients,
+                        subject=f"BluePeak Compass - {competitor['name']} Analysis Complete",
+                        html_content=html_content
+                    )
+                    app_logger.info(f"Analysis notification email sent to {len(recipients)} recipient(s)")
+        except Exception as email_error:
+            # Don't fail the analysis if email fails
+            app_logger.error(f"Failed to send analysis notification email: {email_error}")
+
         return {
             "competitor_id": competitor_id,
             "analysis": analysis,
@@ -123,6 +180,211 @@ async def analyze_competitor(competitor_id: str, analysis_type: str = "comprehen
         raise
     except Exception as e:
         app_logger.error(f"Error analyzing competitor: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{competitor_id}/analyze-automated")
+async def analyze_competitor_automated(competitor_id: str):
+    """Automated competitor analysis with auto-generated questions and answers"""
+    try:
+        from agents.rag_assistant import RAGQueryAssistantAgent
+
+        competitor = await supabase_client.get_competitor_by_id(competitor_id)
+        if not competitor:
+            raise HTTPException(status_code=404, detail="Competitor not found")
+
+        rag_agent = RAGQueryAssistantAgent()
+
+        # Auto-generate relevant questions based on competitor
+        questions = [
+            f"What AI features has {competitor['name']} launched recently?",
+            f"How is {competitor['name']} pricing their services compared to the market?",
+            f"What content strategies is {competitor['name']} using that are working best?",
+            f"What are the key differentiators of {competitor['name']} in the {competitor['industry']} industry?",
+            f"What is the recent market sentiment around {competitor['name']}?"
+        ]
+
+        # Auto-answer each question using RAG agent
+        qa_results = []
+        for question in questions:
+            response = await rag_agent.execute({
+                "query": question,
+                "conversation_history": [],
+                "context_ids": [competitor_id]
+            })
+
+            qa_results.append({
+                "question": question,
+                "answer": response["content"],
+                "sources": response.get("metadata", {}).get("sources", []),
+                "confidence": response.get("metadata", {}).get("confidence", 0.8)
+            })
+
+        # Create a finding entry to increment dashboard metrics
+        finding_data = {
+            "id": str(uuid.uuid4()),
+            "competitor_id": competitor_id,
+            "finding_type": "automated_analysis",
+            "title": f"Automated Analysis: {competitor['name']}",
+            "content": f"Completed automated analysis with {len(questions)} key questions answered.",
+            "source_url": None,
+            "sentiment": "neutral",
+            "importance_score": 0.85,
+            "metadata": {
+                "questions_analyzed": len(questions),
+                "analysis_type": "automated"
+            },
+            "created_at": datetime.utcnow().isoformat()
+        }
+
+        await supabase_client.create_finding(finding_data)
+
+        # Create a report entry for this analysis
+        report_content = f"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+         BLUEPEAK COMPASS
+    Competitor Analysis Report
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Competitor: {competitor['name']}
+Industry: {competitor.get('industry', 'N/A')}
+Generated: {datetime.utcnow().strftime('%B %d, %Y at %I:%M %p')}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+EXECUTIVE SUMMARY
+
+This automated analysis of {competitor['name']} covers {len(questions)} strategic areas
+of competitive intelligence, including AI capabilities, pricing strategies, content
+marketing approaches, market positioning, and sentiment analysis.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+DETAILED ANALYSIS
+
+"""
+
+        for i, qa in enumerate(qa_results, 1):
+            report_content += f"""
+{i}. {qa['question']}
+{'─' * 70}
+
+{qa['answer']}
+
+Confidence Level: {int(qa['confidence'] * 100)}%
+
+"""
+
+        report_content += f"""
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STRATEGIC INSIGHTS
+
+Based on this analysis of {competitor['name']}, key areas of focus have been
+identified across AI innovation, competitive pricing, content strategy, market
+differentiation, and public perception.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+
+        report_data = {
+            "id": str(uuid.uuid4()),
+            "title": f"{competitor['name']} - Automated Analysis Report",
+            "report_type": "competitor_analysis",
+            "content": report_content,
+            "summary": f"Comprehensive automated analysis of {competitor['name']} covering {len(questions)} key strategic questions about their market position, capabilities, and competitive stance.",
+            "competitor_ids": [competitor_id],
+            "trend_ids": [],
+            "generated_by": "automated_analysis",
+            "created_at": datetime.utcnow().isoformat()
+        }
+
+        await supabase_client.create_report(report_data)
+
+        # Update last_analyzed timestamp and increment monitoring score
+        current_score = competitor.get("monitoring_score", 0.5)
+        new_score = min(1.0, current_score + 0.1)
+
+        app_logger.info(f"Updating competitor {competitor['name']}: monitoring_score from {current_score} to {new_score}")
+
+        await supabase_client.update_competitor(
+            competitor_id,
+            {
+                "last_analyzed": datetime.utcnow().isoformat(),
+                "monitoring_score": new_score
+            }
+        )
+
+        # Send email notification if integration is enabled
+        try:
+            integration_settings = await supabase_client.get_integration_settings("default_user")
+            if integration_settings and integration_settings.get("email_enabled"):
+                recipients = integration_settings.get("email_recipients", [])
+                notification_types = integration_settings.get("notification_types", [])
+
+                # Check if analysis notifications are enabled
+                if recipients and ("new_competitor" in notification_types or "analysis_complete" in notification_types or "reports" in notification_types):
+                    # Send both an analysis notification and a report notification
+                    html_content = f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <style>
+                            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                            .header {{ background: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px; }}
+                            .content {{ padding: 20px; background: #f9fafb; margin-top: 20px; border-radius: 8px; }}
+                            .stats {{ background: white; padding: 15px; margin: 15px 0; border-radius: 6px; }}
+                            .stat-item {{ margin: 8px 0; }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="header">
+                                <h1>BluePeak Compass</h1>
+                                <p>Automated Analysis Complete</p>
+                            </div>
+                            <div class="content">
+                                <h2>{competitor['name']} - Comprehensive Analysis</h2>
+                                <p><strong>Industry:</strong> {competitor.get('industry', 'N/A')}</p>
+                                <p><strong>Completed:</strong> {datetime.utcnow().strftime('%B %d, %Y at %I:%M %p UTC')}</p>
+
+                                <div class="stats">
+                                    <h3>Analysis Summary</h3>
+                                    <div class="stat-item"><strong>Questions Analyzed:</strong> {len(questions)}</div>
+                                    <div class="stat-item"><strong>Areas Covered:</strong> AI Features, Pricing, Content Strategy, Market Position, Sentiment</div>
+                                    <div class="stat-item"><strong>Monitoring Score:</strong> {int(new_score * 100)}%</div>
+                                </div>
+
+                                <p style="margin-top: 20px;">A comprehensive report has been generated and is available in your BluePeak Compass dashboard. The analysis covers {len(questions)} strategic questions about {competitor['name']}'s market position and capabilities.</p>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                    """
+
+                    await email_integration.send_email(
+                        to_emails=recipients,
+                        subject=f"BluePeak Compass - {competitor['name']} Automated Analysis Complete",
+                        html_content=html_content
+                    )
+                    app_logger.info(f"Automated analysis notification email sent to {len(recipients)} recipient(s)")
+        except Exception as email_error:
+            # Don't fail the analysis if email fails
+            app_logger.error(f"Failed to send automated analysis notification email: {email_error}")
+
+        return {
+            "competitor_id": competitor_id,
+            "competitor_name": competitor["name"],
+            "questions_answered": len(questions),
+            "analysis_results": qa_results,
+            "timestamp": datetime.utcnow().isoformat(),
+            "summary": f"Completed automated analysis of {competitor['name']} with {len(questions)} strategic questions."
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        app_logger.error(f"Error in automated competitor analysis: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

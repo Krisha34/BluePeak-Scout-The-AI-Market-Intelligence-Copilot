@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS competitors (
     headquarters VARCHAR(255),
     employee_count INTEGER,
     status VARCHAR(50) DEFAULT 'active',
-    monitoring_score DECIMAL(3, 2) DEFAULT 0.0,
+    monitoring_score DECIMAL(3, 2) DEFAULT 0.5,
     last_analyzed TIMESTAMP,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()

@@ -57,6 +57,55 @@ export default function Dashboard() {
     }
   }
 
+  // Get high priority alert from recent data
+  const getHighPriorityAlert = () => {
+    // Check for recent high-importance findings
+    const highImportanceFindings = findings.filter(f => f.importance_score >= 0.8)
+    if (highImportanceFindings.length > 0) {
+      const latest = highImportanceFindings[0]
+      return {
+        title: latest.title,
+        description: latest.content.substring(0, 150) + '...',
+        type: 'finding',
+        date: new Date(latest.created_at)
+      }
+    }
+
+    // Check for recently analyzed competitors (within last 24 hours)
+    const recentlyAnalyzed = competitors.filter(c => {
+      if (!c.last_analyzed) return false
+      const analyzeDate = new Date(c.last_analyzed)
+      const hoursSince = (new Date().getTime() - analyzeDate.getTime()) / (1000 * 60 * 60)
+      return hoursSince < 24
+    })
+
+    if (recentlyAnalyzed.length > 0) {
+      const comp = recentlyAnalyzed[0]
+      return {
+        title: `${comp.name} Analysis Complete`,
+        description: `Recent competitive analysis of ${comp.name} has been completed. Review the findings to stay ahead of market changes.`,
+        type: 'competitor',
+        date: new Date(comp.last_analyzed!)
+      }
+    }
+
+    // Check for high-confidence emerging trends
+    const emergingTrends = trends.filter(t => t.status === 'emerging' && t.confidence_score >= 0.85)
+    if (emergingTrends.length > 0) {
+      const trend = emergingTrends[0]
+      return {
+        title: `Emerging Trend: ${trend.title}`,
+        description: trend.description,
+        type: 'trend',
+        date: new Date(trend.created_at)
+      }
+    }
+
+    return null
+  }
+
+  const highPriorityAlert = getHighPriorityAlert()
+
   const competitiveHealthScore = metrics ? Math.round(
     (metrics.total_competitors * 0.3) +
     (metrics.active_trends * 0.4) +
@@ -290,21 +339,57 @@ export default function Dashboard() {
             <button className="text-sm text-blue-600 hover:text-blue-700">View All</button>
           </div>
           <div className="space-y-4 max-h-96 overflow-y-auto">
-            {/* High Priority Alert */}
-            <div className="border-2 border-red-200 bg-red-50 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-red-900">HIGH PRIORITY</h3>
-                  <p className="text-sm text-red-800 mt-1">
-                    Mailchimp launched Creative Assistant - direct threat to BluePeak's service offering
-                  </p>
-                  <button className="text-xs text-red-700 font-medium mt-2 hover:underline">
-                    Review Report
-                  </button>
+            {/* High Priority Alert - Dynamic */}
+            {highPriorityAlert && (
+              <div className="border-2 border-red-200 bg-red-50 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-red-900">HIGH PRIORITY</h3>
+                    <p className="text-sm font-medium text-red-900 mt-1">
+                      {highPriorityAlert.title}
+                    </p>
+                    <p className="text-sm text-red-800 mt-1">
+                      {highPriorityAlert.description}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-xs text-red-700">
+                        {highPriorityAlert.date.toLocaleString()}
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (highPriorityAlert.type === 'competitor') {
+                            window.location.href = '/competitors'
+                          } else if (highPriorityAlert.type === 'trend') {
+                            window.location.href = '/trends'
+                          } else if (highPriorityAlert.type === 'finding') {
+                            window.location.href = '/reports'
+                          }
+                        }}
+                        className="text-xs text-red-700 font-medium hover:underline"
+                      >
+                        Review Details
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Show message if no high priority items */}
+            {!highPriorityAlert && (
+              <div className="border-2 border-green-200 bg-green-50 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-green-900">All Clear</h3>
+                    <p className="text-sm text-green-800 mt-1">
+                      No high-priority alerts at this time. Your competitive monitoring is up to date.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {trends.slice(0, 5).map((trend) => (
               <div key={trend.id} className="p-4 hover:bg-gray-50 rounded-lg transition-colors border border-gray-100">
@@ -333,49 +418,124 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Industry Distribution */}
-      {metrics && metrics.top_industries.length > 0 && (
+      {/* Industry Distribution and Sentiment Analysis */}
+      {metrics && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-lg font-semibold mb-4">Industry Distribution</h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={metrics.top_industries}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, count }) => `${name}: ${count}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {metrics.top_industries.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {!metrics.top_industries || metrics.top_industries.length === 0 ? (
+              <div className="flex items-center justify-center h-[250px]">
+                <div className="text-center">
+                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">No industry data yet</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Add competitors to see industry distribution
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={metrics.top_industries}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, count }) => `${name}: ${count}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="count"
+                    >
+                      {metrics.top_industries.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Total Industries:</span>
+                    <span className="font-semibold text-gray-900">
+                      {metrics.top_industries.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Total Competitors:</span>
+                    <span className="font-semibold text-gray-900">
+                      {metrics.top_industries.reduce((sum, ind) => sum + ind.count, 0)}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-lg font-semibold mb-4">Sentiment Analysis</h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={[
-                { name: 'Positive', value: metrics.sentiment_breakdown.positive || 5 },
-                { name: 'Neutral', value: metrics.sentiment_breakdown.neutral || 12 },
-                { name: 'Negative', value: metrics.sentiment_breakdown.negative || 2 }
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="name" stroke="#6B7280" />
-                <YAxis stroke="#6B7280" />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: '0.5rem' }}
-                />
-                <Bar dataKey="value" fill="#3B82F6" />
-              </BarChart>
-            </ResponsiveContainer>
+            {metrics.sentiment_breakdown.positive === 0 &&
+             metrics.sentiment_breakdown.neutral === 0 &&
+             metrics.sentiment_breakdown.negative === 0 ? (
+              <div className="flex items-center justify-center h-[250px]">
+                <div className="text-center">
+                  <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium">No sentiment data yet</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Analyze competitors to generate sentiment insights
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={[
+                    { name: 'Positive', value: metrics.sentiment_breakdown.positive, fill: '#10B981' },
+                    { name: 'Neutral', value: metrics.sentiment_breakdown.neutral, fill: '#6B7280' },
+                    { name: 'Negative', value: metrics.sentiment_breakdown.negative, fill: '#EF4444' }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="name" stroke="#6B7280" />
+                    <YAxis stroke="#6B7280" allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#fff', border: '1px solid #E5E7EB', borderRadius: '0.5rem' }}
+                    />
+                    <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+                      {[
+                        { name: 'Positive', value: metrics.sentiment_breakdown.positive, fill: '#10B981' },
+                        { name: 'Neutral', value: metrics.sentiment_breakdown.neutral, fill: '#6B7280' },
+                        { name: 'Negative', value: metrics.sentiment_breakdown.negative, fill: '#EF4444' }
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                <div className="flex justify-around mt-4">
+                  <div className="text-center">
+                    <div className="flex items-center gap-2 justify-center mb-1">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-medium text-gray-700">Positive</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900">{metrics.sentiment_breakdown.positive}</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex items-center gap-2 justify-center mb-1">
+                      <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+                      <span className="text-sm font-medium text-gray-700">Neutral</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900">{metrics.sentiment_breakdown.neutral}</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex items-center gap-2 justify-center mb-1">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <span className="text-sm font-medium text-gray-700">Negative</span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-900">{metrics.sentiment_breakdown.negative}</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
