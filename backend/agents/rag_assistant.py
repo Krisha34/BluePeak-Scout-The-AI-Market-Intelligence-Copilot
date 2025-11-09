@@ -97,9 +97,23 @@ Format response as JSON:
         response_text = await self.invoke_llm(prompt)
 
         try:
-            response_data = json.loads(response_text)
+            # Clean up response text - remove markdown code blocks if present
+            cleaned_text = response_text.strip()
+            if cleaned_text.startswith('```json'):
+                cleaned_text = cleaned_text[7:]  # Remove ```json
+            elif cleaned_text.startswith('```'):
+                cleaned_text = cleaned_text[3:]  # Remove ```
+
+            if cleaned_text.endswith('```'):
+                cleaned_text = cleaned_text[:-3]  # Remove trailing ```
+
+            cleaned_text = cleaned_text.strip()
+
+            response_data = json.loads(cleaned_text)
             return response_data
-        except:
+        except Exception as e:
+            app_logger.error(f"Failed to parse JSON response: {e}")
+            app_logger.debug(f"Raw response: {response_text[:500]}")
             return {
                 "answer": response_text,
                 "sources": [],

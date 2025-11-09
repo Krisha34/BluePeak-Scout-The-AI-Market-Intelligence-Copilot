@@ -126,6 +126,86 @@ async def analyze_competitor(competitor_id: str, analysis_type: str = "comprehen
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/{competitor_id}/analyze-automated")
+async def analyze_competitor_automated(competitor_id: str):
+    """Automated competitor analysis with auto-generated questions and answers"""
+    try:
+        from agents.rag_assistant import RAGQueryAssistantAgent
+
+        competitor = await supabase_client.get_competitor_by_id(competitor_id)
+        if not competitor:
+            raise HTTPException(status_code=404, detail="Competitor not found")
+
+        rag_agent = RAGQueryAssistantAgent()
+
+        # Auto-generate relevant questions based on competitor
+        questions = [
+            f"What AI features has {competitor['name']} launched recently?",
+            f"How is {competitor['name']} pricing their services compared to the market?",
+            f"What content strategies is {competitor['name']} using that are working best?",
+            f"What are the key differentiators of {competitor['name']} in the {competitor['industry']} industry?",
+            f"What is the recent market sentiment around {competitor['name']}?"
+        ]
+
+        # Auto-answer each question using RAG agent
+        qa_results = []
+        for question in questions:
+            response = await rag_agent.execute({
+                "query": question,
+                "conversation_history": [],
+                "context_ids": [competitor_id]
+            })
+
+            qa_results.append({
+                "question": question,
+                "answer": response["content"],
+                "sources": response.get("metadata", {}).get("sources", []),
+                "confidence": response.get("metadata", {}).get("confidence", 0.8)
+            })
+
+        # Create a finding entry to increment dashboard metrics
+        finding_data = {
+            "id": str(uuid.uuid4()),
+            "competitor_id": competitor_id,
+            "finding_type": "automated_analysis",
+            "title": f"Automated Analysis: {competitor['name']}",
+            "content": f"Completed automated analysis with {len(questions)} key questions answered.",
+            "source_url": None,
+            "sentiment": "neutral",
+            "importance_score": 0.85,
+            "metadata": {
+                "questions_analyzed": len(questions),
+                "analysis_type": "automated"
+            },
+            "created_at": datetime.utcnow().isoformat()
+        }
+
+        await supabase_client.create_finding(finding_data)
+
+        # Update last_analyzed timestamp
+        await supabase_client.update_competitor(
+            competitor_id,
+            {
+                "last_analyzed": datetime.utcnow().isoformat(),
+                "monitoring_score": min(1.0, competitor.get("monitoring_score", 0.5) + 0.1)
+            }
+        )
+
+        return {
+            "competitor_id": competitor_id,
+            "competitor_name": competitor["name"],
+            "questions_answered": len(questions),
+            "analysis_results": qa_results,
+            "timestamp": datetime.utcnow().isoformat(),
+            "summary": f"Completed automated analysis of {competitor['name']} with {len(questions)} strategic questions."
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        app_logger.error(f"Error in automated competitor analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{competitor_id}/findings")
 async def get_competitor_findings(competitor_id: str, limit: int = 20):
     """Get research findings for a specific competitor"""
