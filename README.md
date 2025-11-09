@@ -1,8 +1,24 @@
-# BluePeak Compass
+# # BluePeak Scout – The AI Market Intelligence Copilot
 
 **Multi-Agent AI Platform for Competitive Intelligence and Market Research**
 
-BluePeak Compass is a comprehensive competitive intelligence and market research platform powered by LangGraph multi-agent AI systems. It provides automated competitor monitoring, trend analysis, research chat interface, and automated report generation.
+BluePeak Scout is an AI-powered market intelligence platform built on Claude, LangChain, and Retrieval-Augmented Generation (RAG) that helps BluePeak Marketing reclaim its competitive edge through real-time, data-driven insights.
+
+Traditional manual research limits agencies like BluePeak from staying ahead of fast-moving competitors. BluePeak Scout automates this process — continuously collecting signals from news, competitor websites, job postings, ad libraries, and social media — then uses Claude’s advanced reasoning to generate concise, actionable strategy briefs.
+
+With LangGraph-powered workflows for prompt orchestration, vector-based retrieval for factual grounding, and Claude’s generative reasoning for human-quality recommendations, BluePeak Scout transforms raw web data into clear insights and strategic next steps.
+
+The platform delivers:
+
+📊 Automated competitor & trend tracking with RAG-based insights
+
+🧭 AI-generated weekly briefs summarizing top market movements
+
+💬 Campaign & creative idea generator inspired by real competitor moves
+
+🔔 Smart alerts when competitors launch new products or change pricing
+
+Result: BluePeak’s strategists and account managers save hours of manual research weekly, act faster on market changes, and craft winning campaigns backed by live, explainable intelligence — all powered by Claude’s generative understanding and reasoning capabilities.
 
 ![BluePeak Compass](https://img.shields.io/badge/version-0.1.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11-green)
@@ -63,6 +79,9 @@ chmod +x start.sh stop.sh
 - **Cache**: Redis
 - **AI**: Claude API (Anthropic)
 - **Deployment**: Docker + Google Cloud Platform
+
+### See BluePeak Compass In Action
+
 
 ## 📋 Prerequisites
 
