@@ -1,0 +1,50 @@
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/pip-log.txt
+**/pip-delete-this-directory.txt
+**/.tox/
+**/.coverage
+**/.pytest_cache/
+**/*.egg-info/
+**/dist/
+**/build/
+**/*.egg
+
+# Virtual environments
+**/venv/
+**/env/
+**/ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Frontend and other directories
+frontend/
+database/
+deployment/
+docs/
+logs/
+scripts/
+
+# Config files
+docker-compose.yml
+*.md
+.env
+.env.local
+*.pid
