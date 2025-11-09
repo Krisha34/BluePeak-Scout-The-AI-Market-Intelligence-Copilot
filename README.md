@@ -25,15 +25,6 @@ chmod +x start.sh stop.sh
 ./start.sh
 ```
 
-**That's it!** The script will:
-- ✅ Check all prerequisites (Python, Node.js, npm)
-- ✅ Install all dependencies automatically
-- ✅ Handle port conflicts intelligently
-- ✅ Create `.env` file if missing
-- ✅ Validate your configuration
-- ✅ Start both backend and frontend
-- ✅ Open the application in your browser
-
 **To stop the application:**
 ```bash
 ./stop.sh
